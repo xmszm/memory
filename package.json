@@ -1,0 +1,35 @@
+{
+  "name": "@xmszm/memory",
+  "version": "1.0.0",
+  "description": "Personal MCP memory server. Multi-user, file-backed, cross-platform. Each user gets an isolated namespace.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "@xmszm/memory": "dist/index.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsc --skipLibCheck",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["mcp", "memory", "personal", "xmszm"],
+  "author": "xmszm",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xmszm/xmszm-memory.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xmszm/xmszm-memory/issues"
+  },
+  "homepage": "https://github.com/xmszm/xmszm-memory#readme",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "typescript": "^5.8.3"
+  }
+}
