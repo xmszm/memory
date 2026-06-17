@@ -105,11 +105,21 @@ function detectEnvironments(): AIEnvironment[] {
 function generateSkillTemplate(namespace: string, version: string): string {
   return `# 初始化记忆
 
-🎯 **会话启动时加载用户记忆**
+🎯 **加载用户记忆设定**
 
-## 自动执行
+## 使用方式
 
-调用单个工具即可加载所有触发记忆：
+每次新会话开始时，输入：
+
+\`\`\`
+/init-memory
+\`\`\`
+
+或者直接说："请加载我的记忆"
+
+## 功能
+
+一次性加载所有触发记忆：
 
 \`\`\`
 mcp__xmszm-memory__load_session(namespace="${namespace}")
@@ -128,52 +138,11 @@ mcp__xmszm-memory__load_session(namespace="${namespace}")
 - ✅ 工具偏好
 - ✅ 项目设定
 
-## 使用方式
-
-- **手动触发**：输入 \`/init-memory\`
-- **自动触发**：会话开始时通过 hook 自动执行（如果已启用）
-
 ---
 Generated: ${new Date().toISOString()}
 Namespace: ${namespace}
 Version: ${version}
 `;
-}
-
-function generateHookConfig(namespace: string): any {
-  return {
-    hooks: {
-      UserPromptSubmit: [
-        {
-          matcher: "",
-          hooks: [
-            {
-              type: "inject-context",
-              content: `🎯 会话启动协议\n\n如果这是会话的第一条消息，立即调用：mcp__xmszm-memory__load_session(namespace="${namespace}")\n\n这会加载所有触发记忆。必须在回复前执行。`,
-              location: "after-user-message"
-            }
-          ]
-        }
-      ]
-    }
-  };
-}
-
-function mergeHookConfig(existingPath: string, newHook: any): any {
-  let existing: any = {};
-  if (existsSync(existingPath)) {
-    try {
-      existing = JSON.parse(readFileSync(existingPath, "utf-8"));
-    } catch {
-      existing = {};
-    }
-  }
-
-  const merged = { ...existing };
-  merged.hooks = merged.hooks || {};
-  merged.hooks.UserPromptSubmit = newHook.hooks.UserPromptSubmit;
-
-  return merged;
 }
 
 function deployToEnvironment(
@@ -188,28 +157,13 @@ function deployToEnvironment(
     const skillContent = generateSkillTemplate(namespace, version);
     writeFileSync(env.skillPath, skillContent, "utf-8");
 
-    let hookMessage = "";
-
-    // 2. Deploy hook (optional)
-    if (includeHook) {
-      try {
-        mkdirSync(dirname(env.hookPath), { recursive: true });
-        const hookConfig = generateHookConfig(namespace);
-        const merged = mergeHookConfig(env.hookPath, hookConfig);
-        writeFileSync(env.hookPath, JSON.stringify(merged, null, 2), "utf-8");
-        hookMessage = " + hook";
-      } catch (hookErr: any) {
-        return {
-          success: true,
-          message: `⚠️ ${env.name}: skill 已部署，但 hook 部署失败`,
-          error: hookErr.message
-        };
-      }
-    }
+    // 2. Hook 已废弃 - 技术限制无法实现
+    // Claude Code hook 只支持 type: "command"，无法注入上下文
+    // 用户需要手动 /init-memory 加载记忆
 
     return {
       success: true,
-      message: `✅ ${env.name}: skill${hookMessage} 已部署`
+      message: `✅ ${env.name}: skill 已部署 (使用 /init-memory 加载记忆)`
     };
   } catch (err: any) {
     if (err.code === "EACCES") {
@@ -330,7 +284,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "init",
-      description: "初始化记忆系统：自动部署 skill 和 hook 配置到当前或指定的 AI 环境。一次配置，跨环境可用。",
+      description: "初始化记忆系统：自动部署 /init-memory skill 到当前或指定的 AI 环境。一次配置，跨环境可用。",
       inputSchema: {
         type: "object",
         properties: {
@@ -342,10 +296,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             type: "string",
             enum: ["auto", "claude-code", "cursor", "windsurf", "cline", "all"],
             description: "目标环境。auto=自动检测当前环境，all=部署到所有检测到的环境"
-          },
-          includeHook: {
-            type: "boolean",
-            description: "是否同时部署 ConversationStart hook（自动加载记忆）。默认 true"
           }
         },
         required: ["namespace"]
@@ -498,7 +448,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     case "init": {
-      const { namespace, target = "auto", includeHook = true } = args as any;
+      const { namespace, target = "auto" } = args as any;
       const version = "1.1.0"; // 从 package.json 读取更好，这里硬编码
 
       // 1. 检测所有环境
@@ -536,9 +486,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         targets = [found];
       }
 
-      // 3. 部署到目标环境
+      // 3. 部署到目标环境（不再部署 hook）
       const results = targets.map(env =>
-        deployToEnvironment(env, namespace, includeHook, version)
+        deployToEnvironment(env, namespace, false, version)
       );
 
       // 4. 生成报告
@@ -558,11 +508,14 @@ ${summary}
 
 📝 部署内容：
 • Skill 文件：/init-memory 命令
-${includeHook ? "• Hook 配置：ConversationStart 自动触发" : "• Hook 配置：未部署（需手动调用 /init-memory）"}
 
-🎯 下一步：
-${includeHook ? "1. 重启 AI 环境生效（新会话会自动加载记忆）" : "1. 手动输入 /init-memory 加载记忆"}
-2. 会话启动时将自动加载命名空间 [${namespace}] 的记忆
+🎯 使用方式：
+1. 每次新会话时，输入 /init-memory 加载记忆
+2. 或者在对话开始时说"请加载我的记忆"
+
+💡 提示：
+由于技术限制，无法自动加载记忆。
+但 /init-memory 命令非常简单快捷！
 
 ✨ ${successCount}/${targets.length} 个环境部署成功${errorDetails}`;
 

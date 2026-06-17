@@ -27,14 +27,17 @@ Each user gets an isolated namespace. Memories persist across sessions within th
 On first run, the MCP server will:
 - ✅ Auto-detect your AI environment (Claude Code / Cursor / Windsurf / Cline)
 - ✅ Deploy `/init-memory` skill
-- ✅ Configure auto-loading hook
-- ✅ Ready to use immediately
+- ✅ Ready to use
 
-### 3. Start Using
+### 3. Load Memories
 
-After restart, every new conversation will automatically load your memories.
+Every new conversation, simply type:
 
-Or manually trigger: `/init-memory`
+```
+/init-memory
+```
+
+Or just say: **"Please load my memories"**
 
 ---
 
@@ -43,13 +46,13 @@ Or manually trigger: `/init-memory`
 **First Time Setup (Automatic)**:
 1. You add MCP server to config and restart
 2. MCP detects it's the first run
-3. Auto-deploys configuration to your environment
+3. Auto-deploys `/init-memory` skill to your environment
 4. Done!
 
 **Every Session After**:
-- New conversation starts
-- Hook automatically calls `load_session`
-- Your memories (identity, preferences, etc.) are loaded
+- Start a new conversation
+- Type `/init-memory` or say "load my memories"
+- Your identity, preferences, and context are loaded
 - AI greets you with proper context
 
 ---
@@ -126,22 +129,32 @@ Most MCP-compatible clients accept the same format:
 | `delete(namespace, key)` | Delete a memory |
 | `get_triggered(namespace)` | 返回所有带触发条件的记忆（只返回 key + disclosure，不返回 content） |
 | `list_namespaces()` | List all users |
-| `init(namespace, target?, includeHook?)` | **【手动初始化】** 手动部署配置到指定环境（通常不需要，自动完成） |
+| `init(namespace, target?)` | **【首次安装】** 手动部署 skill 到指定环境（通常自动完成，无需手动调用） |
 | `reset_init()` | **【测试/重置】** 重置自动初始化标记，允许下次重新部署 |
 
 ### Auto-Initialization (Default Behavior)
 
-**First run**: MCP server automatically detects your environment and deploys configuration.
+**First run**: MCP server automatically detects your environment and deploys `/init-memory` skill.
 
 **What gets deployed**:
 - Skill file: `~/.claude/commands/init-memory.md` (or equivalent for your AI)
-- Hook config: `~/.claude/settings.json` with ConversationStart hook
 - Marker file: `~/.xmszm-memory/.auto-init-done` (prevents re-initialization)
 
 **Manual override**: Use `init()` tool if you need to:
 - Deploy to a different namespace
 - Deploy to specific environments only
 - Re-deploy after changing settings
+
+### Usage Pattern
+
+**Every new conversation**:
+1. Type `/init-memory` or say "load my memories"
+2. AI calls `load_session(namespace="your-name")`
+3. All triggered memories are loaded
+4. AI responds with proper context
+
+**Why not automatic?**
+Due to technical limitations in Claude Code hooks, automatic loading on conversation start is not possible. But `/init-memory` is quick and easy!
 
 ### Tool Details
 
@@ -153,9 +166,6 @@ init({ namespace: "xmszm" })
 
 // Deploy to all detected environments
 init({ namespace: "xmszm", target: "all" })
-
-// Deploy without auto-loading hook (manual /init-memory only)
-init({ namespace: "xmszm", includeHook: false })
 
 // Supported environments: claude-code, cursor, windsurf, cline
 ```
