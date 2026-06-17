@@ -183,7 +183,27 @@ function generateHookConfig(): any {
     hooks: {
       SessionStart: [
         {
-          matcher: "",
+          matcher: "startup",
+          hooks: [
+            {
+              type: "command",
+              command: "python .claude/hooks/session-start.py",
+              timeout: 5
+            }
+          ]
+        },
+        {
+          matcher: "clear",
+          hooks: [
+            {
+              type: "command",
+              command: "python .claude/hooks/session-start.py",
+              timeout: 5
+            }
+          ]
+        },
+        {
+          matcher: "compact",
           hooks: [
             {
               type: "command",
