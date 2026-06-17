@@ -234,7 +234,10 @@ function deployToEnvironment(
     if (includeHook) {
       try {
         // Deploy hook script
-        const hookScriptPath = join(dirname(env.hookPath), "..", "hooks", "session-start.py");
+        // env.hookPath = ~/.claude/settings.json
+        // hookScriptPath = ~/.claude/hooks/session-start.py
+        const configDir = dirname(env.hookPath); // ~/.claude
+        const hookScriptPath = join(configDir, "hooks", "session-start.py");
         mkdirSync(dirname(hookScriptPath), { recursive: true });
         const hookScript = generateHookScript(namespace);
         writeFileSync(hookScriptPath, hookScript, "utf-8");
