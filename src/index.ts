@@ -143,14 +143,14 @@ Version: ${version}
 function generateHookConfig(namespace: string): any {
   return {
     hooks: {
-      ConversationStart: [
+      UserPromptSubmit: [
         {
           matcher: "",
           hooks: [
             {
               type: "inject-context",
-              content: `🎯 会话启动协议\n\n立即调用：mcp__xmszm-memory__load_session(namespace="${namespace}")\n\n这会加载所有触发记忆。必须在第一次回复前执行。`,
-              location: "before-conversation"
+              content: `🎯 会话启动协议\n\n如果这是会话的第一条消息，立即调用：mcp__xmszm-memory__load_session(namespace="${namespace}")\n\n这会加载所有触发记忆。必须在回复前执行。`,
+              location: "after-user-message"
             }
           ]
         }
@@ -171,7 +171,7 @@ function mergeHookConfig(existingPath: string, newHook: any): any {
 
   const merged = { ...existing };
   merged.hooks = merged.hooks || {};
-  merged.hooks.ConversationStart = newHook.hooks.ConversationStart;
+  merged.hooks.UserPromptSubmit = newHook.hooks.UserPromptSubmit;
 
   return merged;
 }
