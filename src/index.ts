@@ -120,7 +120,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "list_namespaces",
-      description: "列出所有 namespace",
+      description: "列出所有 namespace。注意：查询到 namespace 后，你必须再调用 search(该namespace, query) 才能获取记忆内容。只调 list_namespaces 不会返回任何记忆内容。",
       inputSchema: {
         type: "object",
         properties: {},
