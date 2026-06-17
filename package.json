@@ -18,12 +18,12 @@
   "author": "xmszm",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xmszm/xmszm-memory.git"
+    "url": "git+https://github.com/xmszm/memory.git"
   },
   "bugs": {
-    "url": "https://github.com/xmszm/xmszm-memory/issues"
+    "url": "https://github.com/xmszm/memory/issues"
   },
-  "homepage": "https://github.com/xmszm/xmszm-memory#readme",
+  "homepage": "https://github.com/xmszm/memory#readme",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0"
