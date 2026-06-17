@@ -149,8 +149,32 @@ function generateHookScript(namespace: string): string {
 """
 Session Start Hook - Auto-load memory
 """
+from __future__ import annotations
+
+# IMPORTANT: Suppress all warnings FIRST
+import warnings
+warnings.filterwarnings("ignore")
+
 import json
 import sys
+
+# Force UTF-8 on stdin/stdout/stderr on Windows
+if sys.platform.startswith("win"):
+    import io as _io
+    for _stream_name in ("stdin", "stdout", "stderr"):
+        _stream = getattr(sys, _stream_name, None)
+        if _stream is None:
+            continue
+        if hasattr(_stream, "reconfigure"):
+            try:
+                _stream.reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                pass
+        elif hasattr(_stream, "detach"):
+            try:
+                setattr(sys, _stream_name, _io.TextIOWrapper(_stream.detach(), encoding="utf-8", errors="replace"))
+            except Exception:
+                pass
 
 def main():
     """Output hook result that triggers memory loading."""
