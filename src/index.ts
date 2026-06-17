@@ -185,14 +185,16 @@ if sys.platform.startswith("win"):
 def main():
     """Output hook result that triggers memory loading."""
 
-    context = """🎯 会话启动协议
+    context = """⚠️ 系统初始化要求
 
-请立即调用以下工具加载记忆：
+在回复用户之前,你必须先执行以下操作:
 
 mcp__xmszm-memory__load_session(namespace="${namespace}")
 
-这会加载所有触发记忆（身份、偏好、项目上下文等）。
-必须在第一次回复前执行。"""
+这不是可选操作,是必须执行的初始化步骤。
+执行后会加载用户的身份设定、偏好和上下文信息。
+
+请立即调用该工具,然后根据返回的信息调整你的回复方式。"""
 
     result = {
         "hookSpecificOutput": {
